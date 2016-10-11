@@ -119,6 +119,9 @@ var Engine = (function(global) {
             numCols = 5,
             row, col;
 
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);  // Clear whole canvas before redrawing background
+
         /* Loop through the number of rows and columns we've defined above
          * and, using the rowImages array, draw the correct image for that
          * portion of the "grid"
@@ -180,4 +183,8 @@ var Engine = (function(global) {
      * from within their app.js files.
      */
     global.ctx = ctx;
+
+    // Make some other useful information available
+    global.canvasHeight = canvas.height;
+    global.canvasWidth = canvas.width;
 })(this);
