@@ -1,21 +1,33 @@
 // Unit class defines the basic necessities for enemy/player sprites
-var Unit = function (sprite, x, y, direction, movementX, movementY) {
-  this.x = x || 0;  // x position relative to canvas
-  this.y = y || 0;  // y position relative to canvas
-  this.sprite = sprite;  // URL of sprite
-  this.direction = direction;  // Direction of movement
-  this.movementX = movementX || 0;  // Number of pixels to move left or right
-  this.movementY = movementY || 0;  // Number of pixels to move up or down
+var Unit = function (config) {
+  this.x = config.x || 0;  // x position relative to canvas
+  this.y = config.y || 0;  // y position relative to canvas
+  this.sprite = config.sprite;  // URL of sprite
+  this.direction = config.direction;  // Direction of movement
+  this.movementX = config.movementX || 0;  // Number of pixels to move left or right
+  this.movementY = config.movementY || 0;  // Number of pixels to move up or down
+  this.hitBoxWidth = 70;  // Width of unit's hit box
+  this.hitBoxHeight = 60;  // Height of unti's hit box
+  this.hitBoxOffsetX = 15;  // Hit Box offset x position
+  this.hitBoxOffsetY = 90;  // Hit Box offset y position
 };
 // Draw the unit on the screen
 Unit.prototype.render = function() {
   ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+  ctx.strokeRect(this.x+this.hitBoxOffsetX, this.y+this.hitBoxOffsetY, this.hitBoxWidth, this.hitBoxHeight);  // Show unit hit box for debugging purposes *comment out for production
 };
 
 // Enemies our player must avoid
 // Note enemy reqired render function inherited from Unit class
-var Enemy = function(sprite) {
-  Unit.call(this, sprite, 0, 0, 'right', 50, 0);
+var Enemy = function(sprite, x, y) {
+  Unit.call(this, {
+    sprite: sprite,
+    x: x,
+    y: y,
+    direction: 'right',
+    movementX: 300,
+    movementY: 0
+  });
 };
 Enemy.prototype = Object.create(Unit.prototype);
 Enemy.prototype.constructor = Enemy;
@@ -26,15 +38,36 @@ Enemy.prototype.update = function(dt) {
   // You should multiply any movement by the dt parameter
   // which will ensure the game runs at the same speed for
   // all computers.
-  if (!isCollisionDetected(this.direction, this.x, '', this.movementX)) {
-    this.x += (this.movementX * dt);
-    console.log(this.direction);
+  var isLeft = this.direction == 'left';
+  if (isLeft || this.direction == 'right') {
+    this.x += (this.movementX * dt) * (isLeft ? -1 : 1);
+  }
+  // Switch direction if off canvas
+  if (this.isEnemyOffCanvas()) {
+    this.direction = isLeft ? 'right' : 'left';
+  }
+};
+
+// Check if the enemy is off the canvas
+Enemy.prototype.isEnemyOffCanvas = function () {
+  switch (this.direction) {
+    case 'left':
+      return this.x < -120;
+    case 'right':
+      return this.x >= canvasWidth + 100;
   }
 };
 
 // Note player required render funciton inherited from Unit class
 var Player = function(sprite, x, y) {
-  Unit.call(this, sprite, x, y, '', 101, 86);
+  Unit.call(this, {
+    sprite: sprite,
+    x: x,
+    y: y,
+    direction: '',
+    movementX: 101,
+    movementY: 83
+  });
 };
 Player.prototype = Object.create(Unit.prototype);
 Player.prototype.constructor = Player;
@@ -46,31 +79,33 @@ Player.prototype.update = function() {
     isDown = (this.direction == 'down');
 
   if (isLeft || isRight) {
-    if (!isCollisionDetected(this.direction, this.x, '', this.movementX)) {
+    if (!this.isCanvasBoundaryCollision()) {
       this.x += this.movementX * ((isLeft) ? -1 : 1);
     }
   } else if (isUp || isDown) {
-    if (!isCollisionDetected(this.direction, '', this.y, this.movementY)) {
+    if (!this.isCanvasBoundaryCollision()) {
       this.y += this.movementY * ((isUp) ? -1 : 1);
     }
   }
   this.direction = '';
 };
 
+// Handles user keyboard input
 Player.prototype.handleInput = function (key) {
     this.direction = key;
 };
 
-var isCollisionDetected = function (direction, x, y, increment) {
-  switch (direction) {
+// Check if the player is trying to move off the canvas boundaries
+Player.prototype.isCanvasBoundaryCollision = function () {
+  switch (this.direction) {
     case 'left':
-      return (x - increment) < 0;
+      return (this.x - this.movementX) < 0;
     case 'right':
-      return (x + increment) >= 505;
+      return (this.x + this.movementX) >= canvasWidth;
     case 'up':
-      return (y - increment) < 0;
+      return (this.y - this.movementY) < -29;
     case 'down':
-      return (y + increment) >= 400;
+      return (this.y + this.movementY) >= canvasHeight - 200;
   }
 };
 
@@ -84,7 +119,7 @@ var sprites = {
 
 var allEnemies = [];
 for (var i = 0; i < 3; i++) {
-    allEnemies.push(new Enemy(sprites.bug));
+    allEnemies.push(new Enemy(sprites.bug, -50, 62));
 }
 var player = new Player('images/char-boy.png', 202, 386);
 
