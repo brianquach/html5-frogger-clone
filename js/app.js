@@ -91,7 +91,7 @@ var Application = (function(global) {
     }
     this.direction = '';
 
-    if (this.anyEnemyCollision()) {
+    if (this.anyEnemyCollisions()) {
       console.log('enemy collision detected');
     }
   };
@@ -116,93 +116,94 @@ var Application = (function(global) {
   };
 
   // Check for player and enemy collision
-  Player.prototype.anyEnemyCollision = function () {
-    var e, eStartX, eEndX, eStartY, eEndY,
-      isXOverlap, isYOverlap,
+  Player.prototype.anyEnemyCollisions = function () {
+    var collisionDetected = false;
+    for (var i = 0; i < allEnemies.length; i++) {
+      collisionDetected = this.collisionExists(allEnemies[i]);
+      if (collisionDetected) {
+          break;
+      }
+    }
+    return collisionDetected;
+  };
+
+  Player.prototype.collisionExists = function (object) {
+    var isXOverlap, isYOverlap,
       isCollisionDetected = false;
       pStartX = this.x + this.hitBoxOffsetX,
       pEndX = this.x + this.hitBoxOffsetX + this.hitBoxWidth,
       pStartY = this.y + this.hitBoxOffsetY,
-      pEndY = this.y + this.hitBoxOffsetY + this.hitBoxHeight;
+      pEndY = this.y + this.hitBoxOffsetY + this.hitBoxHeight,
+      oStartX = object.x + object.hitBoxOffsetX,
+      oEndX = object.x + object.hitBoxOffsetX + object.hitBoxWidth,
+      oStartY = object.y + object.hitBoxOffsetY,
+      oEndY = object.y + object.hitBoxOffsetY + object.hitBoxHeight;
 
-    for (var i = 0; i < allEnemies.length; i++) {
-      e = allEnemies[i];
-      eStartX = e.x + e.hitBoxOffsetX,
-      eEndX = e.x + e.hitBoxOffsetX + e.hitBoxWidth,
-      eStartY = e.y + e.hitBoxOffsetY,
-      eEndY = e.y + e.hitBoxOffsetY + e.hitBoxHeight;
+    // Check for object complete overlap of player
+    isXOverlap = pStartX <= oStartX && pEndX >= oStartX;
+    isYOverlap = pStartY <= oStartY && pEndY >= oEndY;
+    if (isXOverlap && isYOverlap) {
+      isCollisionDetected = true;
+    }
 
-      // Check for enemy complete overlap of player
-      isXOverlap = pStartX <= eStartX && pEndX >= eStartX;
-      isYOverlap = pStartY <= eStartY && pEndY >= eEndY;
-      if (isXOverlap && isYOverlap) {
+    // Check for player complete overlap of object
+    isXOverlap = pStartX >= oStartX && pEndX <= oStartX;
+    isYOverlap = pStartY >= oStartY && pEndY <= oEndY;
+    if (isXOverlap && isYOverlap) {
+      isCollisionDetected = true;
+    }
+
+    // Check potential overlap on object top left hit box 'x' position
+    // lower and upper bounded by player's top 'x' positions
+    if (pStartX <= oStartX && pEndX >= oStartX) {
+      // Check if player lower and upper bounded by object 'y' positions
+      if (pStartY >= oStartY && pEndY <= oEndY) {
         isCollisionDetected = true;
-        break;
       }
-
-      // Check for player complete overlap of enemy
-      isXOverlap = pStartX >= eStartX && pEndX <= eStartX;
-      isYOverlap = pStartY >= eStartY && pEndY <= eEndY;
-      if (isXOverlap && isYOverlap) {
+      // Check if object is lower and upper bounded by player 'y' positions
+      else if (pStartY <= oStartY && pEndY >= oEndY) {
         isCollisionDetected = true;
-        break;
       }
-
-      // Check potential overlap on enemy top left hit box 'x' position
-      // lower and upper bounded by player's top 'x' positions
-      if (pStartX <= eStartX && pEndX >= eStartX) {
-        // Check if player lower and upper bounded by enemy 'y' positions
-        if (pStartY >= eStartY && pEndY <= eEndY) {
-          isCollisionDetected = true;
-        }
-        // Check if enemy is lower and upper bounded by player 'y' positions
-        else if (pStartY <= eStartY && pEndY >= eEndY) {
-          isCollisionDetected = true;
-        }
-        // Check for top side overlap
-        else if (pStartY >= eStartY && pStartY <= eEndY) {
-          isCollisionDetected = true;
-        }
-        // Check for bottom side overlap
-        else if (pEndY >= eStartY && pEndY <= eEndY) {
-          isCollisionDetected = true;
-        }
+      // Check for top side overlap
+      else if (pStartY >= oStartY && pStartY <= oEndY) {
+        isCollisionDetected = true;
       }
-      // Check potential overlap on enemy top right hit box 'x' position
-      // lower and upper bounded by player's top 'x' positions
-      else if (pStartX <= eEndX && pEndX >= eEndX) {
-        // Check if player lower and upper bounded by enemy 'y' positions
-        if (pStartY >= eStartY && pEndY <= eEndY) {
-          isCollisionDetected = true;
-        }
-        // Check if enemy is lower and upper bounded by player 'y' positions
-        else if (pStartY <= eStartY && pEndY >= eEndY) {
-          isCollisionDetected = true;
-        }
-        // Check for top side overlap
-        else if (pStartY <= eEndY && pEndY >= eEndY) {
-          isCollisionDetected = true;
-        }
-        // Check for bottom side overlap
-        if (pStartY <= eStartY && pEndY >= eStartY) {
-          isCollisionDetected = true;
-        }
-      }
-      // Check potential overlap on player bounded by enemy lower and upper
-      // 'x' positions
-      else if (pStartX >= eStartX && pEndX <= eEndX) {
-        if (pStartY <= eEndY && pEndY >= eEndY) {
-          isCollisionDetected = true;
-        }
-        else if (pStartY <= eStartY && pEndY >= eStartY) {
-          isCollisionDetected = true;
-        }
-      }
-
-      if (isCollisionDetected) {
-        break;
+      // Check for bottom side overlap
+      else if (pEndY >= oStartY && pEndY <= oEndY) {
+        isCollisionDetected = true;
       }
     }
+    // Check potential overlap on object top right hit box 'x' position
+    // lower and upper bounded by player's top 'x' positions
+    else if (pStartX <= oEndX && pEndX >= oEndX) {
+      // Check if player lower and upper bounded by object 'y' positions
+      if (pStartY >= oStartY && pEndY <= oEndY) {
+        isCollisionDetected = true;
+      }
+      // Check if object is lower and upper bounded by player 'y' positions
+      else if (pStartY <= oStartY && pEndY >= oEndY) {
+        isCollisionDetected = true;
+      }
+      // Check for top side overlap
+      else if (pStartY <= oEndY && pEndY >= oEndY) {
+        isCollisionDetected = true;
+      }
+      // Check for bottom side overlap
+      if (pStartY <= oStartY && pEndY >= oStartY) {
+        isCollisionDetected = true;
+      }
+    }
+    // Check potential overlap on player bounded by object lower and upper
+    // 'x' positions
+    else if (pStartX >= oStartX && pEndX <= oEndX) {
+      if (pStartY <= oEndY && pEndY >= oEndY) {
+        isCollisionDetected = true;
+      }
+      else if (pStartY <= oStartY && pEndY >= oStartY) {
+        isCollisionDetected = true;
+      }
+    }
+
     return isCollisionDetected;
   };
 
