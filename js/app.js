@@ -1,32 +1,39 @@
 var Application = (function(global) {
+  var GameObj = function () {
+    this.hitBoxWidth = 70;  // Width of GameObj's hit box
+    this.hitBoxHeight = 60;  // Height of GameObj's hit box
+    this.hitBoxOffsetX = 15;  // Hit Box offset x position
+    this.hitBoxOffsetY = 90;  // Hit Box offset y position
+  };
+  // Draw the GameObject on the screen
+  GameObj.prototype.render = function() {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    ctx.strokeRect(this.x+this.hitBoxOffsetX, this.y+this.hitBoxOffsetY, this.hitBoxWidth, this.hitBoxHeight);  // Show unit hit box for debugging purposes *comment out for production
+  };
+
   // Unit class defines the basic necessities for enemy/player sprites
   var Unit = function (config) {
+    GameObj.call(this);
     this.x = config.x || 0;  // x position relative to canvas
     this.y = config.y || 0;  // y position relative to canvas
     this.sprite = config.sprite;  // URL of sprite
     this.direction = config.direction;  // Direction of movement
     this.movementX = config.movementX || 0;  // Number of pixels to move left or right
     this.movementY = config.movementY || 0;  // Number of pixels to move up or down
-    this.hitBoxWidth = 70;  // Width of unit's hit box
-    this.hitBoxHeight = 60;  // Height of unti's hit box
-    this.hitBoxOffsetX = 15;  // Hit Box offset x position
-    this.hitBoxOffsetY = 90;  // Hit Box offset y position
   };
-  // Draw the unit on the screen
-  Unit.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-    ctx.strokeRect(this.x+this.hitBoxOffsetX, this.y+this.hitBoxOffsetY, this.hitBoxWidth, this.hitBoxHeight);  // Show unit hit box for debugging purposes *comment out for production
-  };
+  Unit.prototype = Object.create(GameObj.prototype);
+  Unit.prototype.constructor = Unit;
 
   // Enemies our player must avoid
   // Note enemy reqired render function inherited from Unit class
-  var Enemy = function(sprite, x, y) {
+  var Enemy = function(config) {
+    var speed = config.speed || 1;
     Unit.call(this, {
-      sprite: sprite,
-      x: x,
-      y: y,
+      sprite: config.sprite || '',
+      x: config.x || 0,
+      y: config.y || 0,
       direction: 'right',
-      movementX: 300,
+      movementX: speed * 100,
       movementY: 0
     });
   };
@@ -215,10 +222,18 @@ var Application = (function(global) {
     "player": 'images/char-boy.png'
   };
 
-  global.allEnemies = [];
-  for (var i = 0; i < 3; i++) {
-      allEnemies.push(new Enemy(sprites.bug, -50, 62));
+  var bugOffset,
+    allEnemies = [];
+  for (var i = 1; i <= 3; i++) {
+    bugOffset = 22 * (i - 1);
+    allEnemies.push(new Enemy({
+      sprite: sprites.bug,
+      x: -50,
+      y: 62 * i + bugOffset,
+      speed: getRandomInt(1, 5)
+    }));
   }
+  global.allEnemies = allEnemies;
   global.player = new Player('images/char-boy.png', 202, 386);
 
   // This listens for key presses and sends the keys to your
@@ -233,4 +248,11 @@ var Application = (function(global) {
 
     player.handleInput(allowedKeys[e.keyCode]);
   });
+
+  // Code from: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+  function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
 })(this);
