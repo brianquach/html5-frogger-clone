@@ -156,12 +156,10 @@ var Engine = (function(global) {
 
         player.render();
 
-        if (global.isDebugMode) {
-          // Events are invisible except when debug mode is turned on
-          allEvents.forEach(function(event) {
-              event.render();
-          });
-        }
+        // Events are invisible except when debug mode is turned on
+        allEvents.forEach(function(event) {
+            event.render();
+        });
     }
 
     /* This function does nothing but it could have been a good place to
