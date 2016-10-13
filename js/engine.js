@@ -25,8 +25,8 @@ var Engine = (function(global) {
         ctx = canvas.getContext('2d'),
         lastTime;
 
-    canvas.width = 505;
-    canvas.height = 606;
+    canvas.width = global.canvasWidth || 505;
+    canvas.height = global.canvasHeight || 606;
     doc.body.appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
@@ -155,6 +155,13 @@ var Engine = (function(global) {
         });
 
         player.render();
+
+        if (global.isDebugMode) {
+          // Events are invisible except when debug mode is turned on
+          allEvents.forEach(function(event) {
+              event.render();
+          });
+        }
     }
 
     /* This function does nothing but it could have been a good place to
@@ -183,8 +190,4 @@ var Engine = (function(global) {
      * from within their app.js files.
      */
     global.ctx = ctx;
-
-    // Make some other useful information available
-    global.canvasHeight = canvas.height;
-    global.canvasWidth = canvas.width;
 })(this);

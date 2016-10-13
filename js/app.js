@@ -1,21 +1,61 @@
 var Application = (function(global) {
-  var GameObj = function () {
-    this.hitBoxWidth = 70;  // Width of GameObj's hit box
-    this.hitBoxHeight = 60;  // Height of GameObj's hit box
-    this.hitBoxOffsetX = 15;  // Hit Box offset x position
-    this.hitBoxOffsetY = 90;  // Hit Box offset y position
+  global.isDebugMode = true;  // Debug mode enables useful features to help programmer see what's going on behind the scene
+  global.canvasWidth = 505;
+  global.canvasHeight = 606;
+
+  var GameObj = function (config) {
+    this.hitBoxWidth = config.hitBoxWidth || 10;  // Width of GameObj's hit box
+    this.hitBoxHeight = config.hitBoxHeight || 10;  // Height of GameObj's hit box
+    this.hitBoxOffsetX = config.hitBoxOffsetX || 0;  // Hit Box offset x position
+    this.hitBoxOffsetY = config.hitBoxOffsetY || 0;  // Hit Box offset y position
+    this.x = config.x || 0;  // x position relative to canvas
+    this.y = config.y || 0;  // y position relative to canvas
   };
   // Draw the GameObject on the screen
   GameObj.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-    ctx.strokeRect(this.x+this.hitBoxOffsetX, this.y+this.hitBoxOffsetY, this.hitBoxWidth, this.hitBoxHeight);  // Show unit hit box for debugging purposes *comment out for production
+    if (this.sprite) {
+      ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    }
+
+    // Show unit hit box for debugging purposes
+    if (global.isDebugMode) {
+      ctx.strokeRect(this.x+this.hitBoxOffsetX, this.y+this.hitBoxOffsetY, this.hitBoxWidth, this.hitBoxHeight);
+    }
   };
 
-  // Unit class defines the basic necessities for enemy/player sprites
+  // GameEvent are invisible spots in the game that when interacted with, will trigger an event to occur
+  var GameEvent = function (config) {
+    GameObj.call(this, config);
+
+    this.name = config.name || '';
+    triggerEvents
+    var triggerEvents = {};
+    config.triggerEvents.forEach(function(evt) {
+      if (evt.trigger) {
+        triggerEvents[evt.trigger] = evt.respFunc;
+      }
+    });
+    this.triggerEvents = triggerEvents;
+  };
+  GameEvent.prototype = Object.create(GameObj.prototype);
+  GameEvent.prototype.constructor = GameEvent;
+
+  // Checks to see if there is an event for a trigger, then executes if found
+  GameEvent.prototype.triggerEvent = function (triggerEvent) {
+    if (typeof this.triggerEvents[triggerEvent] === 'function') {
+      this.triggerEvents[triggerEvent]();
+    }
+  };
+
+  // Unit class defines the basic necessities for enemies/players/npcs sprites
   var Unit = function (config) {
-    GameObj.call(this);
-    this.x = config.x || 0;  // x position relative to canvas
-    this.y = config.y || 0;  // y position relative to canvas
+    Object.assign(config, {
+      hitBoxWidth: 70,
+      hitBoxHeight: 60,
+      hitBoxOffsetX: 15,
+      hitBoxOffsetY: 90
+    });
+    GameObj.call(this, config);
     this.sprite = config.sprite;  // URL of sprite
     this.direction = config.direction;  // Direction of movement
     this.movementX = config.movementX || 0;  // Number of pixels to move left or right
@@ -98,9 +138,12 @@ var Application = (function(global) {
     }
     this.direction = '';
 
+    // If true player has been defeated
     if (this.anyEnemyCollisions()) {
-      console.log('enemy collision detected');
+      gameOver();
     }
+
+    this.triggerTouchEvents();
   };
 
   // Handles user keyboard input
@@ -134,6 +177,23 @@ var Application = (function(global) {
     return collisionDetected;
   };
 
+  // Trigger any events player is touching
+  Player.prototype.triggerTouchEvents = function () {
+    var event, triggeredEventIdx = [];
+    for (var i = 0; i < allEvents.length; i++) {
+      event = allEvents[i];
+      if (this.collisionExists(event)) {
+          event.triggerEvent('touch');
+          triggeredEventIdx.push(i);
+      }
+    }
+
+    // Remove events that were triggeredEventIdx
+    for (i = 0; i < triggeredEventIdx.length; i++) {
+      allEvents.splice(triggeredEventIdx[i], 1);
+    }
+  };
+
   Player.prototype.collisionExists = function (object) {
     var isXOverlap, isYOverlap,
       isCollisionDetected = false;
@@ -147,15 +207,15 @@ var Application = (function(global) {
       oEndY = object.y + object.hitBoxOffsetY + object.hitBoxHeight;
 
     // Check for object complete overlap of player
-    isXOverlap = pStartX <= oStartX && pEndX >= oStartX;
-    isYOverlap = pStartY <= oStartY && pEndY >= oEndY;
+    isXOverlap = pStartX >= oStartX && pEndX <= oEndX;
+    isYOverlap = pStartY >= oStartY && pEndY <= oEndY;
     if (isXOverlap && isYOverlap) {
       isCollisionDetected = true;
     }
 
     // Check for player complete overlap of object
-    isXOverlap = pStartX >= oStartX && pEndX <= oStartX;
-    isYOverlap = pStartY >= oStartY && pEndY <= oEndY;
+    isXOverlap = pStartX <= oStartX && pEndX >= oStartX;
+    isYOverlap = pStartY <= oStartY && pEndY >= oEndY;
     if (isXOverlap && isYOverlap) {
       isCollisionDetected = true;
     }
@@ -222,19 +282,41 @@ var Application = (function(global) {
     "player": 'images/char-boy.png'
   };
 
-  var bugOffset,
-    allEnemies = [];
-  for (var i = 1; i <= 3; i++) {
-    bugOffset = 22 * (i - 1);
-    allEnemies.push(new Enemy({
-      sprite: sprites.bug,
-      x: -50,
-      y: 62 * i + bugOffset,
-      speed: getRandomInt(1, 5)
+  // Player has lost
+  var gameOver = function () {
+    gameInit();
+  };
+
+  // Initialize game state
+  var gameInit = function () {
+    var bugOffset;
+    global.allEnemies = [];
+    for (var i = 1; i <= 3; i++) {
+      bugOffset = 22 * (i - 1);
+      global.allEnemies.push(new Enemy({
+        sprite: sprites.bug,
+        x: -75,
+        y: 62 * i + bugOffset,
+        speed: getRandomInt(1, 5)
+      }));
+    }
+    global.player = new Player('images/char-boy.png', 202, 386);
+    global.allEvents = [];
+    global.allEvents.push(new GameEvent({
+      name: 'GameWin',
+      x: 0,
+      y: 0,
+      hitBoxWidth: global.canvasWidth,
+      hitBoxHeight: 130,
+      triggerEvents: [{
+        trigger: 'touch',
+        respFunc: function () {
+          alert('you win!');
+        }
+      }]
     }));
-  }
-  global.allEnemies = allEnemies;
-  global.player = new Player('images/char-boy.png', 202, 386);
+  };
+  gameInit();
 
   // This listens for key presses and sends the keys to your
   // Player.handleInput() method. You don't need to modify this.
