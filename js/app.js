@@ -1,4 +1,12 @@
-// Encapsulate code so that global space is not poluted
+/**
+ * @file
+ * Defines all game related classes and initializes game state.
+ *
+ * Author: Brian Quach
+ * Create Date: 10/13/2016
+ *
+ * Licensed under MIT (https://github.com/brianquach/udacity-nano-front-portfolio/blob/master/LICENSE)
+ */
 var Application = (function(global) {
   'use strict';
 
@@ -6,6 +14,7 @@ var Application = (function(global) {
   global.canvasWidth = 505;
   global.canvasHeight = 606;
 
+  // GameObj is the parent class for all objects that can be interacted with in the game
   var GameObj = function(config) {
     this.hitBoxWidth = config.hitBoxWidth || 10; // Width of GameObj's hit box
     this.hitBoxHeight = config.hitBoxHeight || 10; // Height of GameObj's hit box
@@ -122,6 +131,7 @@ var Application = (function(global) {
   Player.prototype = Object.create(Unit.prototype);
   Player.prototype.constructor = Player;
 
+  // Update player's location on canvas
   Player.prototype.update = function() {
     var isLeft = (this.direction == 'left'),
       isRight = (this.direction == 'right'),
