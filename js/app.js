@@ -1,5 +1,7 @@
 // Encapsulate code so that global space is not poluted
 var Application = (function(global) {
+  'use strict';
+
   global.isDebugMode = false; // Debug mode enables useful features to help programmer see what's going on behind the scene
   global.canvasWidth = 505;
   global.canvasHeight = 606;
@@ -167,19 +169,18 @@ var Application = (function(global) {
   // Check for player and enemy collision
   Player.prototype.anyEnemyCollisions = function() {
     var collisionDetected = false;
-    for (var i = 0; i < allEnemies.length; i++) {
-      collisionDetected = this.collisionExists(allEnemies[i]);
-      if (collisionDetected) {
-        break;
-      }
-    }
+    for (
+      var i = allEnemies.length - 1;
+      (i >= 0) && !(collisionDetected = this.collisionExists(allEnemies[i]));
+      i--
+    );
     return collisionDetected;
   };
 
   // Trigger any events player is touching
   Player.prototype.triggerTouchEvents = function() {
     var event, triggeredEventIdx = [];
-    for (var i = 0; i < allEvents.length; i++) {
+    for (var i = 0, len = allEvents.length; i < len; i++) {
       event = allEvents[i];
       if (this.collisionExists(event)) {
         event.triggerEvent('touch');
