@@ -13,7 +13,7 @@ Enjoy this HTML 5 Canvas game based off the classic Frogger game. Avoid the movi
 * Use your favorite browser to open index.html.
 
 ## Customizing Game
-If you're a developer and want to customize the game by adding more enemies or creating custom event triggers you can easily do so using the examples below. All code to add enemies/events or customize player should go inside the gameInit() function inside `app.js`.
+If you're a developer and want to customize the game by adding more enemies or creating custom event triggers you can easily do so using the examples below. All code to add enemies/events or customize player should go inside the `gameInit()` function inside `app.js`.
 
 To add more enemies you can instantiate an Enemy object by passing it a configuration object like so:
 ```JavaScript
