@@ -1,15 +1,16 @@
+// Encapsulate code so that global space is not poluted
 var Application = (function(global) {
-  global.isDebugMode = false;  // Debug mode enables useful features to help programmer see what's going on behind the scene
+  global.isDebugMode = false; // Debug mode enables useful features to help programmer see what's going on behind the scene
   global.canvasWidth = 505;
   global.canvasHeight = 606;
 
-  var GameObj = function (config) {
-    this.hitBoxWidth = config.hitBoxWidth || 10;  // Width of GameObj's hit box
-    this.hitBoxHeight = config.hitBoxHeight || 10;  // Height of GameObj's hit box
-    this.hitBoxOffsetX = config.hitBoxOffsetX || 0;  // Hit Box offset x position
-    this.hitBoxOffsetY = config.hitBoxOffsetY || 0;  // Hit Box offset y position
-    this.x = config.x || 0;  // x position relative to canvas
-    this.y = config.y || 0;  // y position relative to canvas
+  var GameObj = function(config) {
+    this.hitBoxWidth = config.hitBoxWidth || 10; // Width of GameObj's hit box
+    this.hitBoxHeight = config.hitBoxHeight || 10; // Height of GameObj's hit box
+    this.hitBoxOffsetX = config.hitBoxOffsetX || 0; // Hit Box offset x position
+    this.hitBoxOffsetY = config.hitBoxOffsetY || 0; // Hit Box offset y position
+    this.x = config.x || 0; // x position relative to canvas
+    this.y = config.y || 0; // y position relative to canvas
   };
   // Draw the GameObject on the screen
   GameObj.prototype.render = function() {
@@ -24,11 +25,10 @@ var Application = (function(global) {
   };
 
   // GameEvent are invisible spots in the game that when interacted with, will trigger an event to occur
-  var GameEvent = function (config) {
+  var GameEvent = function(config) {
     GameObj.call(this, config);
 
     this.name = config.name || '';
-    triggerEvents
     var triggerEvents = {};
     config.triggerEvents.forEach(function(evt) {
       if (evt.trigger) {
@@ -41,14 +41,14 @@ var Application = (function(global) {
   GameEvent.prototype.constructor = GameEvent;
 
   // Checks to see if there is an event for a trigger, then executes if found
-  GameEvent.prototype.triggerEvent = function (triggerEvent) {
+  GameEvent.prototype.triggerEvent = function(triggerEvent) {
     if (typeof this.triggerEvents[triggerEvent] === 'function') {
       this.triggerEvents[triggerEvent]();
     }
   };
 
   // Unit class defines the basic necessities for enemies/players/npcs sprites
-  var Unit = function (config) {
+  var Unit = function(config) {
     Object.assign(config, {
       hitBoxWidth: 70,
       hitBoxHeight: 60,
@@ -56,10 +56,10 @@ var Application = (function(global) {
       hitBoxOffsetY: 90
     });
     GameObj.call(this, config);
-    this.sprite = config.sprite;  // URL of sprite
-    this.direction = config.direction;  // Direction of movement
-    this.movementX = config.movementX || 0;  // Number of pixels to move left or right
-    this.movementY = config.movementY || 0;  // Number of pixels to move up or down
+    this.sprite = config.sprite; // URL of sprite
+    this.direction = config.direction; // Direction of movement
+    this.movementX = config.movementX || 0; // Number of pixels to move left or right
+    this.movementY = config.movementY || 0; // Number of pixels to move up or down
   };
   Unit.prototype = Object.create(GameObj.prototype);
   Unit.prototype.constructor = Unit;
@@ -97,7 +97,7 @@ var Application = (function(global) {
   };
 
   // Check if the enemy is off the canvas
-  Enemy.prototype.isEnemyOffCanvas = function () {
+  Enemy.prototype.isEnemyOffCanvas = function() {
     switch (this.direction) {
       case 'left':
         return this.x < -120;
@@ -130,8 +130,7 @@ var Application = (function(global) {
       if (!this.isCanvasBoundaryCollision()) {
         this.x += this.movementX * ((isLeft) ? -1 : 1);
       }
-    }
-    else if (isUp || isDown) {
+    } else if (isUp || isDown) {
       if (!this.isCanvasBoundaryCollision()) {
         this.y += this.movementY * ((isUp) ? -1 : 1);
       }
@@ -147,12 +146,12 @@ var Application = (function(global) {
   };
 
   // Handles user keyboard input
-  Player.prototype.handleInput = function (key) {
-      this.direction = key;
+  Player.prototype.handleInput = function(key) {
+    this.direction = key;
   };
 
   // Check if the player is trying to move off the canvas boundaries
-  Player.prototype.isCanvasBoundaryCollision = function () {
+  Player.prototype.isCanvasBoundaryCollision = function() {
     switch (this.direction) {
       case 'left':
         return (this.x - this.movementX) < 0;
@@ -166,33 +165,33 @@ var Application = (function(global) {
   };
 
   // Check for player and enemy collision
-  Player.prototype.anyEnemyCollisions = function () {
+  Player.prototype.anyEnemyCollisions = function() {
     var collisionDetected = false;
     for (var i = 0; i < allEnemies.length; i++) {
       collisionDetected = this.collisionExists(allEnemies[i]);
       if (collisionDetected) {
-          break;
+        break;
       }
     }
     return collisionDetected;
   };
 
   // Trigger any events player is touching
-  Player.prototype.triggerTouchEvents = function () {
+  Player.prototype.triggerTouchEvents = function() {
     var event, triggeredEventIdx = [];
     for (var i = 0; i < allEvents.length; i++) {
       event = allEvents[i];
       if (this.collisionExists(event)) {
-          event.triggerEvent('touch');
-          triggeredEventIdx.push(i);
+        event.triggerEvent('touch');
+        triggeredEventIdx.push(i);
       }
     }
   };
 
   // Detect if there is a collsion between player and object
-  Player.prototype.collisionExists = function (object) {
+  Player.prototype.collisionExists = function(object) {
     var isXOverlap, isYOverlap,
-      isCollisionDetected = false;
+      isCollisionDetected = false,
       pStartX = this.x + this.hitBoxOffsetX,
       pEndX = this.x + this.hitBoxOffsetX + this.hitBoxWidth,
       pStartY = this.y + this.hitBoxOffsetY,
@@ -261,8 +260,7 @@ var Application = (function(global) {
     else if (pStartX >= oStartX && pEndX <= oEndX) {
       if (pStartY <= oEndY && pEndY >= oEndY) {
         isCollisionDetected = true;
-      }
-      else if (pStartY <= oStartY && pEndY >= oStartY) {
+      } else if (pStartY <= oStartY && pEndY >= oStartY) {
         isCollisionDetected = true;
       }
     }
@@ -279,12 +277,12 @@ var Application = (function(global) {
   };
 
   // Player has lost
-  var gameOver = function () {
+  var gameOver = function() {
     gameInit();
   };
 
   // Initialize game state
-  var gameInit = function () {
+  var gameInit = function() {
     var bugOffset;
     global.allEnemies = [];
     for (var i = 1; i <= 3; i++) {
@@ -309,7 +307,7 @@ var Application = (function(global) {
       hitBoxHeight: 130,
       triggerEvents: [{
         trigger: 'touch',
-        respFunc: function () {
+        respFunc: function() {
           alert('YOU WIN!');
           gameInit();
         }
@@ -322,10 +320,10 @@ var Application = (function(global) {
   // Player.handleInput() method. You don't need to modify this.
   document.addEventListener('keyup', function(e) {
     var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
+      37: 'left',
+      38: 'up',
+      39: 'right',
+      40: 'down'
     };
 
     player.handleInput(allowedKeys[e.keyCode]);
