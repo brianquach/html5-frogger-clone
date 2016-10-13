@@ -1,5 +1,5 @@
 var Application = (function(global) {
-  global.isDebugMode = true;  // Debug mode enables useful features to help programmer see what's going on behind the scene
+  global.isDebugMode = false;  // Debug mode enables useful features to help programmer see what's going on behind the scene
   global.canvasWidth = 505;
   global.canvasHeight = 606;
 
@@ -19,7 +19,7 @@ var Application = (function(global) {
 
     // Show unit hit box for debugging purposes
     if (global.isDebugMode) {
-      ctx.strokeRect(this.x+this.hitBoxOffsetX, this.y+this.hitBoxOffsetY, this.hitBoxWidth, this.hitBoxHeight);
+      ctx.strokeRect(this.x + this.hitBoxOffsetX, this.y + this.hitBoxOffsetY, this.hitBoxWidth, this.hitBoxHeight);
     }
   };
 
@@ -187,13 +187,9 @@ var Application = (function(global) {
           triggeredEventIdx.push(i);
       }
     }
-
-    // Remove events that were triggeredEventIdx
-    for (i = 0; i < triggeredEventIdx.length; i++) {
-      allEvents.splice(triggeredEventIdx[i], 1);
-    }
   };
 
+  // Detect if there is a collsion between player and object
   Player.prototype.collisionExists = function (object) {
     var isXOverlap, isYOverlap,
       isCollisionDetected = false;
@@ -300,8 +296,11 @@ var Application = (function(global) {
         speed: getRandomInt(1, 5)
       }));
     }
+
     global.player = new Player('images/char-boy.png', 202, 386);
     global.allEvents = [];
+
+    // Add game event that triggers when player reaches the goal
     global.allEvents.push(new GameEvent({
       name: 'GameWin',
       x: 0,
@@ -311,7 +310,8 @@ var Application = (function(global) {
       triggerEvents: [{
         trigger: 'touch',
         respFunc: function () {
-          alert('you win!');
+          alert('YOU WIN!');
+          gameInit();
         }
       }]
     }));
