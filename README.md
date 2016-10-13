@@ -2,10 +2,10 @@
 Enjoy this HTML 5 Canvas game based off the classic Frogger game. Avoid the moving bugs and reach the water on the opposite side of the starting point to win the game!
 
 ## Table of Contents
-[How To Play](#how-to-play)
-[Customizing Game](#customizing-game)
-[Creator](#creator)
-[Copyright and License](#copyright-and-license)
+* [How To Play](#how-to-play)
+* [Customizing Game](#customizing-game)
+* [Creator](#creator)
+* [Copyright and License](#copyright-and-license)
 
 ## How To Play
 * Clone repository: git clone https://github.com/brianquach/frontend-nanodegree-resume.git or download the zip [here](https://github.com/brianquach/udacity-nano-front-game/archive/master.zip).
