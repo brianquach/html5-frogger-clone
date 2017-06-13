@@ -1,6 +1,8 @@
 # Canvas Arcade Game
 Enjoy this HTML 5 Canvas game based off the classic Frogger game. Avoid the moving bugs and reach the water on the opposite side of the starting point to win the game!
 
+[Demo Here](https://brianquach.github.io/html5-frogger-clone/).
+
 ## Table of Contents
 * [How To Play](#how-to-play)
 * [Customizing Game](#customizing-game)
